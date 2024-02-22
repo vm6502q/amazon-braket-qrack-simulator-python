@@ -11,34 +11,109 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import sys
+import numpy as np
+from abc import ABC
 
-from braket.device_schema.simulators import (
-    GateModelSimulatorDeviceCapabilities,
-    GateModelSimulatorDeviceParameters,
-)
+from braket.device_schema import DeviceCapabilities
+from braket.ir.openqasm import Program as OQ3Program
+from braket.task_result import GateModelTaskResult
+from braket.circuits import StateVector
 
-from braket.default_simulator.simulator import BaseLocalSimulator
-from braket.default_simulator.state_vector_simulation import StateVectorSimulation
+from qiskit.compiler.transpiler import transpile
+from qiskit.qasm3 import loads
+
+from pyqrack import QrackSimulator
 
 
-class StateVectorSimulator(BaseLocalSimulator):
-    DEVICE_ID = "braket_sv"
+class BraketSimulator(ABC):
+    """An abstract simulator that locally runs a quantum task.
 
-    def initialize_simulation(self, **kwargs) -> StateVectorSimulation:
+    The task can be either a quantum circuit defined in an OpenQASM or JAQCD program,
+    or an analog Hamiltonian simulation (AHS) program.
+
+    For users creating their own simulator: to register a simulator so the
+    Braket SDK recognizes its name, the name and class must be added as an
+    entry point for "braket.simulators". This is done by adding an entry to
+    entry_points in the simulator package's setup.py:
+
+    >>> entry_points = {
+    >>>     "braket.simulators": [
+    >>>         "backend_name = <backend_class>"
+    >>>     ]
+    >>> }
+    """
+
+    DEVICE_ID = "QrackSimulator"
+
+    def run(self, ir: OQ3Program, shots=1, is_reactively_separated=False, sdrp=-1, ncrp=-1, *args, **kwargs) -> GateModelTaskResult:
         """
-        Initialize state vector simulation.
+        Run the task specified by the given IR.
+
+        Extra arguments will contain any additional information necessary to run the task,
+        such as number of qubits.
 
         Args:
-            `**kwargs`: qubit_count, shots, batch_size
+            ir (OQ3Program): The IR representation of the program
 
         Returns:
-            StateVectorSimulation: Initialized simulation.
+            GateModelTaskResult: An object
+            representing the results of the simulation.
         """
-        qubit_count = kwargs.get("qubit_count")
-        shots = kwargs.get("shots")
-        batch_size = kwargs.get("batch_size")
-        return StateVectorSimulation(qubit_count, shots, batch_size)
+        basis_gates = [
+            'id', 'u', 'u1', 'u2', 'u3', 'r', 'rx', 'ry', 'rz',
+            'h', 'x', 'y', 'z', 's', 'sdg', 'sx', 'sxdg', 'p', 't', 'tdg',
+            'cu', 'cu1', 'cu2', 'cu3', 'cx', 'cy', 'cz', 'ch', 'cp', 'csx', 'csxdg', 'dcx',
+            'ccx', 'ccy', 'ccz', 'mcx', 'mcy', 'mcz', 'mcu', 'mcu1', 'mcu2', 'mcu3',
+            'swap', 'iswap', 'cswap', 'mcswap', 'reset', 'measure', 'barrier'
+        ]
+
+        is_measured = False
+        for l in reversed(ir):
+            if "measure" in l:
+               is_measured = True
+               break
+
+        circ = transpile(loads("\n".join(ir)), basis_gates=basis_gates)
+        qsim = QrackSimulator(circ.width(), *args, **kwargs)
+        qsim.set_reactive_seperate(is_reactively_separated)
+        if sdrp >= 0:
+            qsim.set_sdrp(sdrp)
+        if ncrp >= 0:
+            qsim.set_ncrp(ncrp)
+
+        state_vector = None
+        measurements = None
+        resultTypes = None
+        values = None
+        if shots == 0:
+            qsim.run_qiskit_circuit(circ, 0)
+            resultTypes = [ResultTypeValue.construct(type="StateVector", value=qsim.out_ket())]
+        else:
+            if not is_measured:
+                circ.measure_all()
+            _measurements = qsim.run_qiskit_circuit(circ, shots)
+            measurements = []
+            for m in _measurements:
+                measurement = list(m)
+                for i in range(len(measurement)):
+                    measurement[i] = int(measurement[i])
+                measurements.push_back(measurement)
+            measurements = np.ndarray(measurements)
+
+        return {
+            taskMetadata: {
+                shots: shots,
+                is_reactively_separated: is_reactively_separated,
+                sdrp: sdrp,
+                ncrp: ncrp,
+                qrack_args: str(args),
+                qrack_kwargs: str(kwargs)
+                },
+            additionalMetadata: None,
+            measurements: measurements,
+            measuredQubits: qsim._sample_qubits,
+            resultTypes: resultTypes
+            }
 
     @property
     def properties(self) -> GateModelSimulatorDeviceCapabilities:
@@ -50,7 +125,8 @@ class StateVectorSimulator(BaseLocalSimulator):
         """
         observables = ["x", "y", "z", "h", "i", "hermitian"]
         max_shots = sys.maxsize
-        qubit_count = 26
+        # Default Qrack build can have 2 ** 12 low-entanglement qubits in one simulator instance:
+        qubit_count = 1 << 12
         return GateModelSimulatorDeviceCapabilities.parse_obj(
             {
                 "service": {
@@ -64,70 +140,6 @@ class StateVectorSimulator(BaseLocalSimulator):
                     "shotsRange": [0, max_shots],
                 },
                 "action": {
-                    "braket.ir.jaqcd.program": {
-                        "actionType": "braket.ir.jaqcd.program",
-                        "version": ["1"],
-                        "supportedOperations": [
-                            "ccnot",
-                            "cnot",
-                            "cphaseshift",
-                            "cphaseshift00",
-                            "cphaseshift01",
-                            "cphaseshift10",
-                            "cswap",
-                            "cv",
-                            "cy",
-                            "cz",
-                            "ecr",
-                            "h",
-                            "i",
-                            "iswap",
-                            "pswap",
-                            "phaseshift",
-                            "rx",
-                            "ry",
-                            "rz",
-                            "s",
-                            "si",
-                            "swap",
-                            "t",
-                            "ti",
-                            "unitary",
-                            "v",
-                            "vi",
-                            "x",
-                            "xx",
-                            "xy",
-                            "y",
-                            "yy",
-                            "z",
-                            "zz",
-                        ],
-                        "supportedResultTypes": [
-                            {
-                                "name": "Sample",
-                                "observables": observables,
-                                "minShots": 1,
-                                "maxShots": max_shots,
-                            },
-                            {
-                                "name": "Expectation",
-                                "observables": observables,
-                                "minShots": 0,
-                                "maxShots": max_shots,
-                            },
-                            {
-                                "name": "Variance",
-                                "observables": observables,
-                                "minShots": 0,
-                                "maxShots": max_shots,
-                            },
-                            {"name": "Probability", "minShots": 0, "maxShots": max_shots},
-                            {"name": "StateVector", "minShots": 0, "maxShots": 0},
-                            {"name": "DensityMatrix", "minShots": 0, "maxShots": 0},
-                            {"name": "Amplitude", "minShots": 0, "maxShots": 0},
-                        ],
-                    },
                     "braket.ir.openqasm.program": {
                         "actionType": "braket.ir.openqasm.program",
                         "version": ["1"],
@@ -248,6 +260,3 @@ class StateVectorSimulator(BaseLocalSimulator):
                 "deviceParameters": GateModelSimulatorDeviceParameters.schema(),
             }
         )
-
-
-DefaultSimulator = StateVectorSimulator

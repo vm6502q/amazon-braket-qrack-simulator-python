@@ -12,3 +12,4 @@
 # language governing permissions and limitations under the License.
 
 from braket.simulator.braket_simulator import BraketSimulator  # noqa: F401
+from braket.simulator.qrack_simulator import QrackSimulator

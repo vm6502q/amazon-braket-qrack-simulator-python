@@ -17,12 +17,12 @@ from setuptools import find_namespace_packages, setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open("src/braket/default_simulator/_version.py") as f:
+with open("src/braket/Z_simulator/_version.py") as f:
     version = f.readlines()[-1].split()[-1].strip("\"'")
 
 
 setup(
-    name="amazon-braket-default-simulator",
+    name="amazon-braket-qrack-simulator",
     version=version,
     license="Apache License 2.0",
     python_requires=">= 3.9",
@@ -31,25 +31,12 @@ setup(
     package_data={"": ["*.g4", "*.inc"]},
     include_package_data=True,
     install_requires=[
-        "numpy",
-        "opt_einsum",
-        "pydantic>=1.9,<2.0",
-        "scipy",
-        "sympy",
-        # pinned for compatibility with strawberry fields
-        "antlr4-python3-runtime==4.9.2",
-        "amazon-braket-schemas>=1.18.0",
+        "pyqrack",
+        "qiskit"
     ],
     entry_points={
         "braket.simulators": [
-            "default = braket.default_simulator.state_vector_simulator:StateVectorSimulator",
-            "braket_sv = braket.default_simulator.state_vector_simulator:StateVectorSimulator",
-            "braket_dm = braket.default_simulator.density_matrix_simulator:DensityMatrixSimulator",
-            (
-                "braket_ahs = "
-                "braket.analog_hamiltonian_simulator.rydberg.rydberg_simulator:"
-                "RydbergAtomSimulator",
-            ),
+            "qrack = braket.default_simulator.qrack_simulator:QrackSimulator",
         ]
     },
     extras_require={
@@ -71,14 +58,14 @@ setup(
             "tox",
         ]
     },
-    url="https://github.com/amazon-braket/amazon-braket-default-simulator-python",
-    author="Amazon Web Services",
+    url="https://github.com/amazon-braket/amazon-braket-qrack-simulator-python",
+    author="Unitary Fund, Amazon Web Services",
     description=(
         "An open source quantum circuit simulator to be run locally with the Amazon Braket SDK"
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords="Amazon AWS Quantum",
+    keywords="Qrack Amazon AWS Quantum",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
