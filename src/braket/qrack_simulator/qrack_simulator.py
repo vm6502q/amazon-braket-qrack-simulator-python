@@ -106,7 +106,6 @@ class BraketQrackSimulator(ABC):
         state_vector = None
         measurements = None
         resultTypes = None
-        values = None
         if shots == 0:
             qsim.run_qiskit_circuit(circ, 0)
             resultTypes = [ResultTypeValue.construct(type="StateVector", value=qsim.out_ket())]
