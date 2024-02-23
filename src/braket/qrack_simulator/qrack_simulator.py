@@ -119,7 +119,7 @@ class BraketQrackSimulator(ABC):
                 },
             'additionalMetadata': None,
             'measurements': measurements,
-            'measuredQubits': qsim._sample_qubits,
+            'measuredQubits': qsim._sample_qubits if hasattr(qsim, '_sample_qubits') else None,
             'resultTypes': resultTypes
             }
 
