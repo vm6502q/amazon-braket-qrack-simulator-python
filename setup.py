@@ -32,7 +32,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "pyqrack",
-        "qiskit"
+        "qiskit",
+        "qiskit_qasm3_import"
     ],
     entry_points={
         "braket.simulators": [
