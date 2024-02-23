@@ -17,7 +17,6 @@ from abc import ABC
 from braket.device_schema import DeviceCapabilities
 from braket.ir.openqasm import Program as OQ3Program
 from braket.task_result import GateModelTaskResult
-from braket.circuits import StateVector
 
 from qiskit.compiler.transpiler import transpile
 from qiskit.qasm3 import loads
