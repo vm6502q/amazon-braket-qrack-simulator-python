@@ -29,7 +29,7 @@ from qiskit.qasm3 import loads
 from pyqrack import QrackSimulator
 
 
-class QrackSimulator(ABC):
+class BraketQrackSimulator(ABC):
     """An abstract simulator that locally runs a quantum task.
 
     The task can be either a quantum circuit defined in an OpenQASM or JAQCD program,
@@ -47,7 +47,7 @@ class QrackSimulator(ABC):
     >>> }
     """
 
-    DEVICE_ID = "QrackSimulator"
+    DEVICE_ID = "BraketQrackSimulator"
 
     def run(self, ir: OQ3Program, shots=1, is_reactively_separated=False, sdrp=-1, ncrp=-1, *args, **kwargs) -> GateModelTaskResult:
         """
@@ -72,18 +72,18 @@ class QrackSimulator(ABC):
         ]
 
         is_measured = False
-        is_inc = False
-        src_lines = ir.source.splitlines()
-        inc_line = 'include "stdgates.inc";'
+        src_lines = ir.source.replace("cnot", "cx").splitlines()
         for l in reversed(src_lines):
             if "measure" in l:
                is_measured = True
-            if inc_line in l:
-               is_inc = True
 
-        circ = transpile(loads(ir.source if is_inc else (inc_line + '\n' + ir.source)), basis_gates=basis_gates)
+        inc_line = 'include "stdgates.inc";'
+        if not inc_line in src_lines[1]:
+            src_lines.insert(1, inc_line)
+
+        circ = transpile(loads("\n".join(src_lines)), basis_gates=basis_gates)
         qsim = QrackSimulator(circ.width(), *args, **kwargs)
-        qsim.set_reactive_seperate(is_reactively_separated)
+        qsim.set_reactive_separate(is_reactively_separated)
         if sdrp >= 0:
             qsim.set_sdrp(sdrp)
         if ncrp >= 0:
@@ -102,25 +102,25 @@ class QrackSimulator(ABC):
             _measurements = qsim.run_qiskit_circuit(circ, shots)
             measurements = []
             for m in _measurements:
-                measurement = list(m)
+                measurement = list(m.split("x", 1)[1])
                 for i in range(len(measurement)):
                     measurement[i] = int(measurement[i])
-                measurements.push_back(measurement)
-            measurements = np.ndarray(measurements)
+                measurements.append(measurement)
+            measurements = np.array(measurements)
 
         return {
-            taskMetadata: {
-                shots: shots,
-                is_reactively_separated: is_reactively_separated,
-                sdrp: sdrp,
-                ncrp: ncrp,
-                qrack_args: str(args),
-                qrack_kwargs: str(kwargs)
+            'taskMetadata': {
+                'shots': shots,
+                'is_reactively_separated': is_reactively_separated,
+                'sdrp': sdrp,
+                'ncrp': ncrp,
+                'qrack_args': str(args),
+                'qrack_kwargs': str(kwargs)
                 },
-            additionalMetadata: None,
-            measurements: measurements,
-            measuredQubits: qsim._sample_qubits,
-            resultTypes: resultTypes
+            'additionalMetadata': None,
+            'measurements': measurements,
+            'measuredQubits': qsim._sample_qubits,
+            'resultTypes': resultTypes
             }
 
     @property

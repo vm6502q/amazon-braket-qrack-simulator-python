@@ -37,7 +37,7 @@ setup(
     ],
     entry_points={
         "braket.simulators": [
-            "qrack = braket.qrack_simulator.qrack_simulator:QrackSimulator",
+            "qrack = braket.qrack_simulator.qrack_simulator:BraketQrackSimulator",
         ]
     },
     extras_require={
