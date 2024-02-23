@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 
 import sys
-import numpy as np
+import uuid
 from abc import ABC
 
 from braket.device_schema.simulators import (
@@ -20,8 +20,13 @@ from braket.device_schema.simulators import (
     GateModelSimulatorDeviceParameters,
 )
 
+from braket.task_result import (
+    AdditionalMetadata,
+    GateModelTaskResult,
+    TaskMetadata
+)
+
 from braket.ir.openqasm import Program as OQ3Program
-from braket.task_result import GateModelTaskResult
 
 from qiskit.compiler.transpiler import transpile
 from qiskit.qasm3 import loads
@@ -76,6 +81,7 @@ class BraketQrackSimulator(ABC):
         for l in reversed(src_lines):
             if "measure" in l:
                is_measured = True
+               break
 
         inc_line = 'include "stdgates.inc";'
         if not inc_line in src_lines[1]:
@@ -101,27 +107,27 @@ class BraketQrackSimulator(ABC):
                 circ.measure_all()
             _measurements = qsim.run_qiskit_circuit(circ, shots)
             measurements = []
+            bit_len = len(qsim._sample_qubits)
             for m in _measurements:
-                measurement = list(m.split("x", 1)[1])
-                for i in range(len(measurement)):
-                    measurement[i] = int(measurement[i])
-                measurements.append(measurement)
-            measurements = np.array(measurements)
+                integer = int(m.split("x", 1)[1])
+                bit_string = [int(digit) for digit in bin(integer)[2:]]
+                if len(bit_string) < bit_len:
+                    bit_string = bit_string + [0] * (bit_len - len(bit_string))
+                measurements.append(bit_string)
 
-        return {
-            'taskMetadata': {
-                'shots': shots,
-                'is_reactively_separated': is_reactively_separated,
-                'sdrp': sdrp,
-                'ncrp': ncrp,
-                'qrack_args': str(args),
-                'qrack_kwargs': str(kwargs)
-                },
-            'additionalMetadata': None,
-            'measurements': measurements,
-            'measuredQubits': qsim._sample_qubits if hasattr(qsim, '_sample_qubits') else None,
-            'resultTypes': resultTypes
-            }
+        return GateModelTaskResult.construct(
+            taskMetadata=TaskMetadata(
+                id=str(uuid.uuid4()),
+                shots=shots,
+                deviceId=self.DEVICE_ID,
+            ),
+            additionalMetadata=AdditionalMetadata(
+                action=ir,
+            ),
+            resultTypes=resultTypes,
+            measurements=measurements,
+            measuredQubits=qsim._sample_qubits,
+        )
 
     @property
     def properties(self) -> GateModelSimulatorDeviceCapabilities:
