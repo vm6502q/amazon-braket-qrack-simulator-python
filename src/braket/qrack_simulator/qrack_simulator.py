@@ -14,7 +14,11 @@
 import numpy as np
 from abc import ABC
 
-from braket.device_schema import DeviceCapabilities
+from braket.device_schema.simulators import (
+    GateModelSimulatorDeviceCapabilities,
+    GateModelSimulatorDeviceParameters,
+)
+
 from braket.ir.openqasm import Program as OQ3Program
 from braket.task_result import GateModelTaskResult
 
