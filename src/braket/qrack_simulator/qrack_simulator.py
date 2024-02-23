@@ -72,13 +72,16 @@ class QrackSimulator(ABC):
         ]
 
         is_measured = False
+        is_inc = False
         src_lines = ir.source.splitlines()
+        inc_line = 'include "stdgates.inc";'
         for l in reversed(src_lines):
             if "measure" in l:
                is_measured = True
-               break
+            if inc_line in l:
+               is_inc = True
 
-        circ = transpile(loads(ir.source), basis_gates=basis_gates)
+        circ = transpile(loads(ir.source if is_inc else (inc_line + '\n' + ir.source)), basis_gates=basis_gates)
         qsim = QrackSimulator(circ.width(), *args, **kwargs)
         qsim.set_reactive_seperate(is_reactively_separated)
         if sdrp >= 0:
