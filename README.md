@@ -2,13 +2,13 @@
 
 This is an Amazon Braket SDK back end for the open-source [unitaryfund/qrack](https://github.com/unitaryfund/qrack) simulator. ([PyQrack](https://github.com/unitaryfund/pyqrack) provides pure Python language bindings from C++ Qrack.) This simulator can be run locally, via either a (vendor-agnostic) OpenCL implementation or a (NVIDIA-specific) CUDA implementation. (CPU-only local simulation is also supported, when compiling and installing Qrack from source.) You can use the simulator to test quantum tasks that you construct for the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) before you submit them to the Amazon Braket service for execution.
 
-## Setting up Amazon Braket Default Simulator Python
+## Setting up Amazon Braket Qrack Simulator Python
 Installing this package will install the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), necessary to use the local simulator.
 For manual installation of the SDK, follow the instructions in the [README](https://github.com/amazon-braket/amazon-braket-sdk-python/blob/main/README.md) for setup.
 
-**Checking the version of the default simulator**
+**Checking the version of the Qrack simulator**
 
-You can check your currently installed version of `amazon-braket-default-simulator` with `pip show`:
+You can check your currently installed version of `amazon-braket-qrack-simulator` with `pip show`:
 
 ```bash
 pip show amazon-braket-qrack-simulator
