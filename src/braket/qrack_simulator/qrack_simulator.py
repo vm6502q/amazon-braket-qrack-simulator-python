@@ -25,7 +25,7 @@ from qiskit.qasm3 import loads
 from pyqrack import QrackSimulator
 
 
-class BraketSimulator(ABC):
+class QrackSimulator(ABC):
     """An abstract simulator that locally runs a quantum task.
 
     The task can be either a quantum circuit defined in an OpenQASM or JAQCD program,
