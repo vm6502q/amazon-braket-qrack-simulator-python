@@ -33,7 +33,8 @@ setup(
     install_requires=[
         "pyqrack",
         "qiskit",
-        "qiskit_qasm3_import"
+        "qiskit_qasm3_import",
+        "amazon-braket-sdk",
     ],
     entry_points={
         "braket.simulators": [

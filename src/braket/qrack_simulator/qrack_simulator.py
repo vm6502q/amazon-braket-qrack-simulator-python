@@ -134,15 +134,15 @@ class BraketQrackSimulator(ABC):
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(
                 id=str(uuid.uuid4()),
-                shots=shots,
                 deviceId=self.DEVICE_ID,
+                shots=shots,
             ),
             additionalMetadata=AdditionalMetadata(
                 action=ir,
-                sdrp=sdrp,
-                ncrp=ncrp,
                 args=str(*args),
                 kwargs=str(**kwargs)
+                ncrp=ncrp,
+                sdrp=sdrp,
             ),
             resultTypes=resultTypes,
             measurements=measurements,
