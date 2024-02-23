@@ -139,6 +139,10 @@ class BraketQrackSimulator(ABC):
             ),
             additionalMetadata=AdditionalMetadata(
                 action=ir,
+                sdrp=sdrp,
+                ncrp=ncrp,
+                args=str(*args),
+                kwargs=str(**kwargs)
             ),
             resultTypes=resultTypes,
             measurements=measurements,
@@ -231,16 +235,15 @@ class BraketQrackSimulator(ABC):
                                 "name": "inv",
                             },
                         ],
-                        "supportedPragmas": [],
-                        "forbiddenPragmas": [
-                            "braket_unitary_matrix",
+                        "supportedPragmas": [
                             "braket_result_type_state_vector",
                             "braket_result_type_density_matrix",
                             "braket_result_type_sample",
                             "braket_result_type_expectation",
                             "braket_result_type_variance",
                             "braket_result_type_probability",
-                            "braket_result_type_amplitude",
+                        ],
+                        "forbiddenPragmas": [
                             "braket_noise_amplitude_damping",
                             "braket_noise_bit_flip",
                             "braket_noise_depolarizing",
@@ -252,6 +255,8 @@ class BraketQrackSimulator(ABC):
                             "braket_noise_two_qubit_dephasing",
                             "braket_noise_two_qubit_depolarizing",
                             "braket_result_type_adjoint_gradient",
+                            "braket_result_type_amplitude",
+                            "braket_unitary_matrix",
                         ],
                         "supportedResultTypes": [
                             {
