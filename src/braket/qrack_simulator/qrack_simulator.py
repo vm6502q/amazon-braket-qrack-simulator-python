@@ -79,14 +79,14 @@ class BraketQrackSimulator(ABC):
         src = ir.source.replace("cnot", "cx")
         variables = list(ir.inputs.keys())
         for v in variables:
-            src = src.replace(v, variables[v])
+            src = src.replace(v, str(variables[v]))
 
         src_lines = src.splitlines()
         if len(src_lines) == 0:
             raise ValueError("OpenQASM program is empty!")
 
         inc_line = 'include "stdgates.inc";'
-        if (len(src_lines) < 2) and (inc_line not in src_lines[1]):
+        if (len(src_lines) > 1) and (inc_line not in src_lines[1]):
             src_lines.insert(1, inc_line)
 
         is_measured = False
