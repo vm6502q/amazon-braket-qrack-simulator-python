@@ -17,7 +17,7 @@ from setuptools import find_namespace_packages, setup
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open("src/braket/simulator/_version.py") as f:
+with open("src/braket/qrack_simulator/_version.py") as f:
     version = f.readlines()[-1].split()[-1].strip("\"'")
 
 
