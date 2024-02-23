@@ -1,45 +1,36 @@
-# Amazon Braket Default Simulator
+# Amazon Braket (SDK) Qrack Simulator
 
-[![Latest Version](https://img.shields.io/pypi/v/amazon-braket-default-simulator.svg)](https://pypi.python.org/pypi/amazon-braket-default-simulator)
-[![Supported Python Versions](https://img.shields.io/pypi/pyversions/amazon-braket-default-simulator.svg)](https://pypi.python.org/pypi/amazon-braket-default-simulator)
-[![Build status](https://github.com/amazon-braket/amazon-braket-default-simulator-python/actions/workflows/python-package.yml/badge.svg)](https://github.com/amazon-braket/amazon-braket-default-simulator-python/actions/workflows/python-package.yml)
-[![codecov](https://codecov.io/gh/amazon-braket/amazon-braket-default-simulator-python/branch/main/graph/badge.svg?token=FZEG1AQU3S)](https://codecov.io/gh/amazon-braket/amazon-braket-default-simulator-python)
-[![Documentation Status](https://img.shields.io/readthedocs/amazon-braket-default-simulator-python.svg?logo=read-the-docs)](https://amazon-braket-default-simulator-python.readthedocs.io/en/latest/?badge=latest)
-
-The Amazon Braket Default Simulator is a Python open source library that provides an implementation of a quantum simulator 
-that you can run locally. You can use the simulator to test quantum tasks that you construct for the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python)
-before you submit them to the Amazon Braket service for execution.
+This is an Amazon Braket SDK back end for the open-source [unitaryfund/qrack](https://github.com/unitaryfund/qrack) simulator. ([PyQrack](https://github.com/unitaryfund/pyqrack) provides pure Python language bindings from C++ Qrack.) This simulator can be run locally, via either a (vendor-agnostic) OpenCL implementation or a (NVIDIA-specific) CUDA implementation. (CPU-only local simulation is also supported, when compiling and installing Qrack from source.) You can use the simulator to test quantum tasks that you construct for the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) before you submit them to the Amazon Braket service for execution.
 
 ## Setting up Amazon Braket Default Simulator Python
-You must have the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) installed to use the local simulator.
-Follow the instructions in the [README](https://github.com/amazon-braket/amazon-braket-sdk-python/blob/main/README.md) for setup.
+Installing this package will install the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), necessary to use the local simulator.
+For manual installation of the SDK, follow the instructions in the [README](https://github.com/amazon-braket/amazon-braket-sdk-python/blob/main/README.md) for setup.
 
 **Checking the version of the default simulator**
 
 You can check your currently installed version of `amazon-braket-default-simulator` with `pip show`:
 
 ```bash
-pip show amazon-braket-default-simulator
+pip show amazon-braket-qrack-simulator
 ```
 
 or alternatively from within Python:
 
 ```
->>> from braket import default_simulator
->>> default_simulator.__version__
+>>> from braket import qrack_simulator
+>>> qrack_simulator.__version__
 ```
 
 ## Usage
-The quantum simulator implementations `StateVectorSimulator` and `DensityMatrixSimulator` plug into the `LocalSimulator` interface in 
-[Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), with the `backend` parameters as `"braket_sv"` and `"braket_dm"`, respectively.
-Alternatively, to use `StateVectorSimulator`, you can instantiate `LocalSimulator` with no arguments or with `backend="default"`: 
+The quantum simulator implementation `BraketQrackSimulator` plugs into the `LocalSimulator` interface in 
+[Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), with the `backend` parameters as `"qrack"`.
 
 **Executing a circuit using the default simulator**
 ```python
 from braket.circuits import Circuit
 from braket.devices import LocalSimulator
 
-device = LocalSimulator()
+device = LocalSimulator(backend="qrack")
 
 bell = Circuit().h(0).cnot(0, 1)
 print(device.run(bell, shots=100).result().measurement_counts)
@@ -47,7 +38,7 @@ print(device.run(bell, shots=100).result().measurement_counts)
 
 ## Documentation
 
-Detailed documentation, including the API reference, can be found on [Read the Docs](https://amazon-braket-default-simulator-python.readthedocs.io/en/latest/)
+`BraketQrackSimulator` follows a subset of the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) default simulator input and output interfaces. Detailed documentation for the default simulator, including the API reference, can be found on [Read the Docs](https://amazon-braket-default-simulator-python.readthedocs.io/en/latest/)
 
 **To generate the API Reference HTML in your local environment**
 
@@ -57,53 +48,29 @@ First, install tox:
 pip install tox
 ```
 
-To generate the HTML, first change directories (`cd`) to position the cursor in the `amazon-braket-default-simulator-python` directory. Then, run the following command to generate the HTML documentation files:
+To generate the HTML, first change directories (`cd`) to position the cursor in the `amazon-braket-qrack-simulator-python` directory. Then, run the following command to generate the HTML documentation files:
 
 ```bash
 tox -e docs
 ```
 
 To view the generated documentation, open the following file in a browser:
-`../amazon-braket-default-simulator-python/build/documentation/html/index.html`
+`../amazon-braket-qrack-simulator-python/build/documentation/html/index.html`
 
 ## Testing
 
 If you want to contribute to the project, be sure to run unit tests and get a successful result 
-before you submit a pull request. To run the unit tests, first install the test dependencies using the following command:
+before you submit a pull request. To run the unit tests, first install `pytest`, if necessary:
 
 ```bash
-pip install -e "amazon-braket-default-simulator-python[test]"
+pip install pytest
 ```
 
-To run the unit tests:
+To run the unit tests, use this command in the `amazon-braket-qrack-simulator-python` directory:
 
 ```bash
-tox -e unit-tests
+pytest .
 ```
-
-You can also pass in various pytest arguments to run selected tests:
-
-```bash
-tox -e unit-tests -- your-arguments
-```
-
-For more information, please see [pytest usage](https://docs.pytest.org/en/stable/usage.html).
-
-To run linters and doc generators and unit tests:
-
-```bash
-tox
-```
-
-To run the performance tests:
-
-```bash
-tox -e performance-tests
-```
-
-These tests will compare the performance of a series of simulator executions for your changes against the latest commit on the main branch.
-*Note*: The execution times for the performance tests are affected by the other processes running on the system.
-In order to get stable results, stop other applications when running these tests.
 
 ## License
 
