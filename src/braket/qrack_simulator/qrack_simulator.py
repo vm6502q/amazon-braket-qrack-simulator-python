@@ -23,9 +23,11 @@ from braket.device_schema.simulators import (
 from braket.task_result import (
     AdditionalMetadata,
     GateModelTaskResult,
+    ResultTypeValue,
     TaskMetadata
 )
 
+from braket.ir import jaqcd
 from braket.ir.openqasm import Program as OQ3Program
 
 from qiskit.compiler.transpiler import transpile
@@ -90,10 +92,17 @@ class BraketQrackSimulator(ABC):
             src_lines.insert(1, inc_line)
 
         is_measured = False
-        for l in reversed(src_lines):
+        line_num = 0
+        while line_num < len(src_lines):
+            l = src_lines[line_num]
+
             if "measure" in l:
-               is_measured = True
-               break
+                is_measured = True
+
+            if "#pragma" in l:
+                del src_lines[line_num]
+            else:
+                line_num = line_num + 1
 
         circ = transpile(loads("\n".join(src_lines)), basis_gates=basis_gates)
         qsim = QrackSimulator(circ.width(), *args, **kwargs)
@@ -108,7 +117,7 @@ class BraketQrackSimulator(ABC):
         resultTypes = None
         if shots == 0:
             qsim.run_qiskit_circuit(circ, 0)
-            resultTypes = [ResultTypeValue.construct(type="StateVector", value=qsim.out_ket())]
+            resultTypes = [ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket())]
         else:
             if not is_measured:
                 circ.measure_all()
