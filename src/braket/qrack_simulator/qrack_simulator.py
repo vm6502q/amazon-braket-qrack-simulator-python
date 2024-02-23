@@ -223,7 +223,8 @@ class BraketQrackSimulator(ABC):
                                 "name": "inv",
                             },
                         ],
-                        "supportedPragmas": [
+                        "supportedPragmas": [],
+                        "forbiddenPragmas": [
                             "braket_unitary_matrix",
                             "braket_result_type_state_vector",
                             "braket_result_type_density_matrix",
@@ -232,8 +233,6 @@ class BraketQrackSimulator(ABC):
                             "braket_result_type_variance",
                             "braket_result_type_probability",
                             "braket_result_type_amplitude",
-                        ],
-                        "forbiddenPragmas": [
                             "braket_noise_amplitude_damping",
                             "braket_noise_bit_flip",
                             "braket_noise_depolarizing",
@@ -273,7 +272,7 @@ class BraketQrackSimulator(ABC):
                         "supportPhysicalQubits": False,
                         "supportsPartialVerbatimBox": False,
                         "requiresContiguousQubitIndices": True,
-                        "requiresAllQubitsMeasurement": True,
+                        "requiresAllQubitsMeasurement": False,
                         "supportsUnassignedMeasurements": True,
                         "disabledQubitRewiringSupported": False,
                     },
