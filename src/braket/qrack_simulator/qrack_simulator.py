@@ -30,6 +30,7 @@ from braket.task_result import (
 
 from braket.ir import jaqcd
 from braket.ir.openqasm import Program as OQ3Program
+from braket.circuits.observable import Observable
 
 from qiskit.compiler.transpiler import transpile
 from qiskit.qasm3 import loads
@@ -142,6 +143,9 @@ class BraketQrackSimulator(ABC):
             if "state_vector" in l:
                 resultTypes.append(ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket()))
             elif "probability" in l:
+                if shots < 0:
+                    raise ValueError("BraketQrackSimulator cannot calculate probability for shots>0!")
+
                 tokens = re.split('[|]| ', l)
                 qubits = []
                 t_num = 0
@@ -151,11 +155,39 @@ class BraketQrackSimulator(ABC):
                         continue
                     qubits.append(int(tokens[t_num + 1]))
                     t_num = t_num + 2
-                qubits = [int(qubit) for qubit in qubits]
+                resultTypes.append(jaqcd.Probability.construct(targets=qubits))
+            elif "expectation" in l:
+                tokens = re.split('\[|\]\)|\(| ', l)
+                qubit_bases = []
+                qubits = []
+                t_num = 0
+                while t_num < len(tokens):
+                    if tokens[t_num] != "q":
+                        t_num = t_num + 1
+                        continue
+                    qb = int(tokens[t_num + 1])
+                    qubit_bases.append((qb, tokens[t_num - 1]))
+                    qubits.append(qb)
+                    t_num = t_num + 2
+                tensor_product = None
+                for b in qubit_bases:
+                    if b[1] == "z":
+                        if tensor_product is None:
+                            tensor_product = Observable.Z()
+                        else:
+                            tensor_product = tensor_product @ Observable.Z()
+                    elif b[1] == "x":
+                        qsim.h(b[0])
+                        if tensor_product is None:
+                            tensor_product = Observable.X()
+                        else:
+                            tensor_product = tensor_product @ Observable.X()
+                    else:
+                        raise ValueError("BraketQrackSimulator only allows z and x basis Expectation return, for shots <= 0!")
                 if shots > 0:
-                    resultTypes.append(jaqcd.Probability.construct(targets=qubits))
-                else:
-                    raise ValueError("BraketQrackSimulator cannot calculate probability for shots>0!")
+                    resultTypes.append(jaqcd.Probability.construct(observable=tensor_product.to_ir(), targets=qubits))
+                    continue
+                resultTypes.append(jaqcd.Expectation.construct(observable=tensor_product.to_ir(), targets=qubits, value=qsim.prob_perm(qubits, len(qubits) * [True])))
 
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(
@@ -183,7 +215,7 @@ class BraketQrackSimulator(ABC):
         Returns:
             GateModelSimulatorDeviceCapabilities: Device capabilities for this simulator.
         """
-        observables = ["x", "y", "z", "h", "i", "hermitian"]
+        observables = ["x", "z"]
         max_shots = sys.maxsize
         # Default Qrack build can have 2 ** 12 low-entanglement qubits in one simulator instance:
         qubit_count = 1 << 12
