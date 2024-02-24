@@ -143,8 +143,8 @@ class BraketQrackSimulator(ABC):
             if "state_vector" in l:
                 resultTypes.append(ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket()))
             elif "probability" in l:
-                if shots < 0:
-                    raise ValueError("BraketQrackSimulator cannot calculate probability for shots>0!")
+                if shots <= 0:
+                    raise ValueError("BraketQrackSimulator cannot calculate probability for 0 shots!")
 
                 tokens = re.split('[|]| ', l)
                 qubits = []
@@ -157,6 +157,9 @@ class BraketQrackSimulator(ABC):
                     t_num = t_num + 2
                 resultTypes.append(jaqcd.Probability.construct(targets=qubits))
             elif "expectation" in l:
+                if shots <= 0:
+                    raise ValueError("BraketQrackSimulator cannot calculate expectation for 0 shots!")
+
                 tokens = re.split('\[|\]\)|\(| ', l)
                 qubit_bases = []
                 qubits = []
@@ -169,6 +172,7 @@ class BraketQrackSimulator(ABC):
                     qubit_bases.append((qb, tokens[t_num - 1]))
                     qubits.append(qb)
                     t_num = t_num + 2
+
                 tensor_product = None
                 for b in qubit_bases:
                     if b[1] == "z":
@@ -183,11 +187,9 @@ class BraketQrackSimulator(ABC):
                         else:
                             tensor_product = tensor_product @ Observable.X()
                     else:
-                        raise ValueError("BraketQrackSimulator only allows z and x basis Expectation return, for shots <= 0!")
-                if shots > 0:
-                    resultTypes.append(jaqcd.Probability.construct(observable=tensor_product.to_ir(), targets=qubits))
-                    continue
-                resultTypes.append(jaqcd.Expectation.construct(observable=tensor_product.to_ir(), targets=qubits, value=qsim.prob_perm(qubits, len(qubits) * [True])))
+                        raise ValueError("BraketQrackSimulator only allows z and x basis Expectation return values!")
+
+                resultTypes.append(jaqcd.Probability.construct(observable=tensor_product.to_ir(), targets=qubits))
 
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(
@@ -296,6 +298,7 @@ class BraketQrackSimulator(ABC):
                         "supportedPragmas": [
                             "braket_result_type_state_vector",
                             "braket_result_type_probability",
+                            "braket_result_type_expectation",
                         ],
                         "forbiddenPragmas": [
                             "braket_noise_amplitude_damping",
@@ -308,7 +311,6 @@ class BraketQrackSimulator(ABC):
                             "braket_noise_phase_damping",
                             "braket_noise_two_qubit_dephasing",
                             "braket_noise_two_qubit_depolarizing",
-                            "braket_result_type_expectation",
                             "braket_result_type_sample",
                             "braket_result_type_variance",
                             "braket_result_type_density_matrix",
