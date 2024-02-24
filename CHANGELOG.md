@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.1 (2024-02-24)
+
+Bugs fixed:
+- Hex measurements are now parsed correctly
+- Extra simulator arguments are parsed correclty
+
+This release was tested by running the notebooks in the [examples](https://github.com/vm6502q/amazon-braket-qrack-simulator-python/tree/main/examples) folder.
+
 ## v0.1.0 (2024-02-23)
 
 This is the first (pre-)release of the Qrack Simulator for Amazon Braket SDK!
