@@ -99,7 +99,8 @@ class BraketQrackSimulator(ABC):
             if "measure" in l:
                 is_measured = True
 
-            if "#pragma" in l:
+            if ("#pragma" in l) and ("state_vector" in l):
+                print("(Qrack will output state vector from end-of-circuit. Do not request mid-circuit state vectors.)")
                 del src_lines[line_num]
             else:
                 line_num = line_num + 1
@@ -237,11 +238,6 @@ class BraketQrackSimulator(ABC):
                         ],
                         "supportedPragmas": [
                             "braket_result_type_state_vector",
-                            "braket_result_type_density_matrix",
-                            "braket_result_type_sample",
-                            "braket_result_type_expectation",
-                            "braket_result_type_variance",
-                            "braket_result_type_probability",
                         ],
                         "forbiddenPragmas": [
                             "braket_noise_amplitude_damping",
@@ -254,6 +250,11 @@ class BraketQrackSimulator(ABC):
                             "braket_noise_phase_damping",
                             "braket_noise_two_qubit_dephasing",
                             "braket_noise_two_qubit_depolarizing",
+                            "braket_result_type_density_matrix",
+                            "braket_result_type_expectation",
+                            "braket_result_type_variance",
+                            "braket_result_type_probability",
+                            "braket_result_type_sample",
                             "braket_result_type_adjoint_gradient",
                             "braket_result_type_amplitude",
                             "braket_unitary_matrix",
