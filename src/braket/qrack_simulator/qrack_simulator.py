@@ -158,7 +158,7 @@ class BraketQrackSimulator(ABC):
                 resultTypes.append(jaqcd.Probability.construct(targets=qubits))
             elif ("sample" in l) or ("variance" in l) or ("expectation" in l):
                 if shots <= 0:
-                    raise ValueError("BraketQrackSimulator cannot calculate expectation for 0 shots!")
+                    raise ValueError("BraketQrackSimulator cannot calculate sample, variance, or expectation for 0 shots!")
 
                 tokens = re.split('\[|\]\)|\(| ', l)
                 qubit_bases = []
@@ -187,7 +187,7 @@ class BraketQrackSimulator(ABC):
                         else:
                             tensor_product = tensor_product @ Observable.X()
                     else:
-                        raise ValueError("BraketQrackSimulator only allows z and x basis Expectation return values!")
+                        raise ValueError("BraketQrackSimulator only allows z and x basis sample, variance, and expectation return values!")
 
                 if "sample" in l:
                     resultTypes.append(jaqcd.Sample.construct(observable=tensor_product.to_ir(), targets=qubits))
