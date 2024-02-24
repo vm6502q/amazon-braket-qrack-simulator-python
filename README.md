@@ -23,7 +23,7 @@ or alternatively from within Python:
 
 ## Usage
 The quantum simulator implementation `BraketQrackSimulator` plugs into the `LocalSimulator` interface in 
-[Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), with the `backend` parameters as `"qrack"`.
+[Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python), with the `backend` parameter as `"qrack"`.
 
 **Executing a circuit using the default simulator**
 ```python
@@ -66,7 +66,7 @@ before you submit a pull request. To run the unit tests, first install `pytest`,
 pip install pytest
 ```
 
-To run the unit tests, use this command in the `amazon-braket-qrack-simulator-python` directory:
+With pytest installed, use this command in the `amazon-braket-qrack-simulator-python` directory:
 
 ```bash
 pytest .
