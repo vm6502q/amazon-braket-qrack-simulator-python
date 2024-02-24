@@ -38,7 +38,7 @@ print(device.run(bell, shots=100).result().measurement_counts)
 
 ## Documentation
 
-`BraketQrackSimulator` follows a subset of the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) default simulator input and output interfaces. Detailed documentation for the default simulator, including the API reference, can be found on [Read the Docs](https://amazon-braket-default-simulator-python.readthedocs.io/en/latest/)
+`BraketQrackSimulator` follows a subset of the [Amazon Braket SDK](https://github.com/amazon-braket/amazon-braket-sdk-python) default simulator input and output interfaces. Detailed documentation for the default simulator, including the API reference, can be found on [Read the Docs](https://amazon-braket-default-simulator-python.readthedocs.io/en/latest/).
 
 **To generate the API Reference HTML in your local environment**
 
