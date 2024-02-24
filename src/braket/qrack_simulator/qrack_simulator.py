@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import re
 import sys
 import uuid
 from abc import ABC
@@ -85,13 +86,15 @@ class BraketQrackSimulator(ABC):
 
         src_lines = src.splitlines()
         if len(src_lines) == 0:
-            raise ValueError("OpenQASM program is empty!")
+            raise ValueError("BraketQrackSimulator constructor OpenQASM program argument is empty!")
 
         inc_line = 'include "stdgates.inc";'
         if (len(src_lines) > 1) and (inc_line not in src_lines[1]):
             src_lines.insert(1, inc_line)
 
         is_measured = False
+        is_warned = False
+        pragma_lines = []
         line_num = 0
         while line_num < len(src_lines):
             l = src_lines[line_num]
@@ -99,11 +102,15 @@ class BraketQrackSimulator(ABC):
             if "measure" in l:
                 is_measured = True
 
-            if ("#pragma" in l) and ("state_vector" in l):
-                print("(Qrack will output state vector from end-of-circuit. Do not request mid-circuit state vectors.)")
+            if "#pragma" in l:
                 del src_lines[line_num]
+                pragma_lines.append(l)
             else:
+                if (not is_warned) and len(pragma_lines) > 0:
+                    print("WARNING: BraketQrackSimulator will output non-measurement-sample observables from end-of-circuit. (Do not request mid-circuit observables.)")
+                    is_warned = True
                 line_num = line_num + 1
+        del line_num
 
         circ = transpile(loads("\n".join(src_lines)), basis_gates=basis_gates)
         qsim = QrackSimulator(circ.width(), *args, **kwargs)
@@ -113,12 +120,9 @@ class BraketQrackSimulator(ABC):
         if ncrp >= 0:
             qsim.set_ncrp(ncrp)
 
-        state_vector = None
         measurements = None
-        resultTypes = None
         if shots == 0:
             qsim.run_qiskit_circuit(circ, 0)
-            resultTypes = [ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket())]
         else:
             if not is_measured:
                 circ.measure_all()
@@ -131,6 +135,27 @@ class BraketQrackSimulator(ABC):
                 if len(bit_string) < bit_len:
                     bit_string = bit_string + [0] * (bit_len - len(bit_string))
                 measurements.append(bit_string)
+
+        resultTypes = [] if len(pragma_lines) else None
+        for r in pragma_lines:
+            print(l)
+            if "state_vector" in l:
+                resultTypes.append(ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket()))
+            elif "probability" in l:
+                tokens = re.split('[|]| ', l)
+                qubits = []
+                t_num = 0
+                while t_num < len(tokens):
+                    if tokens[t_num] != "q":
+                        t_num = t_num + 1
+                        continue
+                    qubits.append(int(tokens[t_num + 1]))
+                    t_num = t_num + 2
+                qubits = [int(qubit) for qubit in qubits]
+                if shots > 0:
+                    resultTypes.append(jaqcd.Probability.construct(targets=qubits))
+                else:
+                    raise ValueError("BraketQrackSimulator cannot calculate probability for shots>0!")
 
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(
@@ -238,6 +263,7 @@ class BraketQrackSimulator(ABC):
                         ],
                         "supportedPragmas": [
                             "braket_result_type_state_vector",
+                            "braket_result_type_probability",
                         ],
                         "forbiddenPragmas": [
                             "braket_noise_amplitude_damping",
@@ -250,11 +276,10 @@ class BraketQrackSimulator(ABC):
                             "braket_noise_phase_damping",
                             "braket_noise_two_qubit_dephasing",
                             "braket_noise_two_qubit_depolarizing",
-                            "braket_result_type_density_matrix",
                             "braket_result_type_expectation",
-                            "braket_result_type_variance",
-                            "braket_result_type_probability",
                             "braket_result_type_sample",
+                            "braket_result_type_variance",
+                            "braket_result_type_density_matrix",
                             "braket_result_type_adjoint_gradient",
                             "braket_result_type_amplitude",
                             "braket_unitary_matrix",
