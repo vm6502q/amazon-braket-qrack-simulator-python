@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.2 (2024-02-24)
+
+Features added (for reporting observables estimated from measurement shots):
+- `Sample`
+- `Variance`
+- `Expectation`
+
+This release was tested by running the notebooks in the [examples](https://github.com/vm6502q/amazon-braket-qrack-simulator-python/tree/main/examples) folder.
+
 ## v0.1.1 (2024-02-24)
 
 Bugs fixed:
