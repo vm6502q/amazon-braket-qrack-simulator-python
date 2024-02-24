@@ -125,7 +125,7 @@ class BraketQrackSimulator(ABC):
             measurements = []
             bit_len = len(qsim._sample_qubits)
             for m in _measurements:
-                integer = int(m.split("x", 1)[1])
+                integer = int(m, 0)
                 bit_string = [int(digit) for digit in bin(integer)[2:]]
                 if len(bit_string) < bit_len:
                     bit_string = bit_string + [0] * (bit_len - len(bit_string))
@@ -139,8 +139,8 @@ class BraketQrackSimulator(ABC):
             ),
             additionalMetadata=AdditionalMetadata(
                 action=ir,
-                args=str(*args),
-                kwargs=str(**kwargs)
+                args=str(args),
+                kwargs=str(kwargs),
                 ncrp=ncrp,
                 sdrp=sdrp,
             ),
