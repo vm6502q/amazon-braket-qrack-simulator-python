@@ -156,7 +156,7 @@ class BraketQrackSimulator(ABC):
                     qubits.append(int(tokens[t_num + 1]))
                     t_num = t_num + 2
                 resultTypes.append(jaqcd.Probability.construct(targets=qubits))
-            elif "expectation" in l:
+            elif ("sample" in l) or ("variance" in l) or ("expectation" in l):
                 if shots <= 0:
                     raise ValueError("BraketQrackSimulator cannot calculate expectation for 0 shots!")
 
@@ -189,7 +189,12 @@ class BraketQrackSimulator(ABC):
                     else:
                         raise ValueError("BraketQrackSimulator only allows z and x basis Expectation return values!")
 
-                resultTypes.append(jaqcd.Probability.construct(observable=tensor_product.to_ir(), targets=qubits))
+                if "sample" in l:
+                    resultTypes.append(jaqcd.Sample.construct(observable=tensor_product.to_ir(), targets=qubits))
+                elif "variance" in l:
+                    resultTypes.append(jaqcd.Variance.construct(observable=tensor_product.to_ir(), targets=qubits))
+                else:
+                    resultTypes.append(jaqcd.Expectation.construct(observable=tensor_product.to_ir(), targets=qubits))
 
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(
