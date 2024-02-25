@@ -31,7 +31,7 @@ setup(
     package_data={"": ["*.g4", "*.inc"]},
     include_package_data=True,
     install_requires=[
-        "pyqrack",
+        "pyqrack>=1.27.0",
         "qiskit",
         "qiskit_qasm3_import",
         "amazon-braket-sdk",
