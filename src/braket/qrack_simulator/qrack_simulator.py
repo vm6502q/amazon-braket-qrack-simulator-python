@@ -191,8 +191,12 @@ class BraketQrackSimulator(ABC):
                         obs = Observable.H()
                     else:
                         raise ValueError("BraketQrackSimulator only allows x, y, z, i, and h basis sample, variance, and expectation return values!")
+
+                    # "Compute" must "uncompute" to restore original state (for outer loop).
+                    # We "compute" by `basis_rotation_gates`, then we uncompute later.
                     for g in obs.basis_rotation_gates:
                         qsim.mtrx(g.to_matrix().flatten().tolist(), b[0])
+
                     if tensor_product is None:
                         tensor_product = obs
                     else:
@@ -232,6 +236,12 @@ class BraketQrackSimulator(ABC):
                         resultTypes.append(jaqcd.Variance.construct(observable=tensor_product.to_ir(), targets=qubits))
                     else:
                         resultTypes.append(jaqcd.Expectation.construct(observable=tensor_product.to_ir(), targets=qubits))
+
+                for b in qubit_bases:
+                    # "Compute" must "uncompute" to restore original state (for outer loop).
+                    # We "uncompute" by reversed gate order and conjugate transposition of elements with getH().
+                    for g in reversed(obs.basis_rotation_gates):
+                        qsim.mtrx(g.getH().to_matrix().flatten().tolist(), b[0])
 
         return GateModelTaskResult.construct(
             taskMetadata=TaskMetadata(

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1 (2024-02-25)
+
+Bug fix / feature addition: "uncompute" after observable calculation (to allow different bases of observation for the same qubits).
+
 ## v0.3.0 (2024-02-25)
 
 Features added:
