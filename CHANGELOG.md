@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0 (2024-02-25)
+
+Features added:
+- `Probability` and `Variance` observables for available bases can be calculated exactly for 0 shots.
+- `Sample` observable can be simulated for 0 shots
+
+This release was tested by running the notebooks in the [examples](https://github.com/vm6502q/amazon-braket-qrack-simulator-python/tree/main/examples) folder.
+
 ## v0.2.0 (2024-02-25)
 
 Features added:

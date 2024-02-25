@@ -105,7 +105,6 @@ class BraketQrackSimulator(ABC):
                 is_measured = True
 
             if "#pragma" in l:
-                print(l)
                 pragma_lines.append(l)
                 del src_lines[line_num]
             else:
@@ -144,10 +143,7 @@ class BraketQrackSimulator(ABC):
             if "state_vector" in l:
                 resultTypes.append(ResultTypeValue(type=jaqcd.StateVector(), value=qsim.out_ket()))
             elif "probability" in l:
-                if shots <= 0:
-                    raise ValueError("BraketQrackSimulator cannot calculate probability for 0 shots!")
-
-                tokens = re.split('[|]| ', l)
+                tokens = re.split('\[|\]| ', l)
                 qubits = []
                 t_num = 0
                 while t_num < len(tokens):
@@ -156,7 +152,16 @@ class BraketQrackSimulator(ABC):
                         continue
                     qubits.append(int(tokens[t_num + 1]))
                     t_num = t_num + 2
-                resultTypes.append(jaqcd.Probability.construct(targets=qubits))
+                if shots <= 0:
+                    value = qsim.prob_all(qubits)
+                    resultTypes.append(SimpleNamespace(**{
+                        "type": jaqcd.Probability.construct(
+                            targets=qubits,
+                            value=value
+                        ),
+                        "value": value}))
+                else:
+                    resultTypes.append(jaqcd.Probability.construct(targets=qubits))
             elif ("sample" in l) or ("variance" in l) or ("expectation" in l):
                 tokens = re.split('\[|\]\)|\(| ', l)
                 qubit_bases = []
@@ -194,9 +199,23 @@ class BraketQrackSimulator(ABC):
                         tensor_product = tensor_product @ obs
                 if shots <= 0:
                     if "sample" in l:
-                        raise ValueError("BraketQrackSimulator cannot calculate sample for 0 shots!")
+                        value = qsim.measure_shots(qubits, 1)[0]
+                        resultTypes.append(SimpleNamespace(**{
+                            "type": jaqcd.Sample.construct(
+                                observable=tensor_product.to_ir(),
+                                targets=qubits,
+                                value=value
+                            ),
+                            "value": value}))
                     elif "variance" in l:
-                        raise ValueError("BraketQrackSimulator cannot calculate variance for 0 shots!")
+                        value = qsim.variance(qubits)
+                        resultTypes.append(SimpleNamespace(**{
+                            "type": jaqcd.Variance.construct(
+                                observable=tensor_product.to_ir(),
+                                targets=qubits,
+                                value=value
+                            ),
+                            "value": value}))
                     else:
                         value = qsim.factorized_expectation_fp(qubits, len(qubits) * [1.0, -1.0])
                         resultTypes.append(SimpleNamespace(**{
