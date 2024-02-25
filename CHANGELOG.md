@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0 (2024-02-25)
+
+Features added:
+- Available observable bases are now (tensor products of) x, y, z, i, and h.
+- `Expectation` observables for available bases can be calculated exactly for 0 shots.
+
+In a future release, exact calculation of `Probability` and `Variance` will require Qrack to expose the `ProbBitsAll()` method on `QInterface`. (The method already exists in the C++ code, but there was no demand for this method to be exposed via the shared library API, previously.)
+
 ## v0.1.2 (2024-02-24)
 
 Features added (for reporting observables estimated from measurement shots):
