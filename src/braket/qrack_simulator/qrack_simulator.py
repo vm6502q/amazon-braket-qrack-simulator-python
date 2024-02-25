@@ -171,21 +171,27 @@ class BraketQrackSimulator(ABC):
                     qubits.append(qb)
                     t_num = t_num + 2
 
+                obs = None
                 tensor_product = None
                 for b in qubit_bases:
-                    if b[1] == "z":
-                        if tensor_product is None:
-                            tensor_product = Observable.Z()
-                        else:
-                            tensor_product = tensor_product @ Observable.Z()
-                    elif b[1] == "x":
-                        qsim.h(b[0])
-                        if tensor_product is None:
-                            tensor_product = Observable.X()
-                        else:
-                            tensor_product = tensor_product @ Observable.X()
+                    if b[1] == "x":
+                        obs = Observable.X()
+                    elif b[1] == "y":
+                        obs = Observable.Y()
+                    elif b[1] == "z":
+                        obs = Observable.Z()
+                    elif b[1] == "i":
+                        obs = Observable.I()
+                    elif b[1] == "h":
+                        obs = Observable.H()
                     else:
-                        raise ValueError("BraketQrackSimulator only allows z and x basis sample, variance, and expectation return values!")
+                        raise ValueError("BraketQrackSimulator only allows x, y, z, i, and h basis sample, variance, and expectation return values!")
+                    for g in obs.basis_rotation_gates:
+                        qsim.mtrx(g.to_matrix().flatten().tolist(), b[0])
+                    if tensor_product is None:
+                        tensor_product = obs
+                    else:
+                        tensor_product = tensor_product @ obs
                 if shots <= 0:
                     if "sample" in l:
                         raise ValueError("BraketQrackSimulator cannot calculate sample for 0 shots!")
@@ -234,7 +240,7 @@ class BraketQrackSimulator(ABC):
         Returns:
             GateModelSimulatorDeviceCapabilities: Device capabilities for this simulator.
         """
-        observables = ["x", "z"]
+        observables = ["x", "y", "z", "i", "h"]
         max_shots = sys.maxsize
         # Default Qrack build can have 2 ** 12 low-entanglement qubits in one simulator instance:
         qubit_count = 1 << 12
