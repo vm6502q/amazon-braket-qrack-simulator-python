@@ -128,7 +128,7 @@ class BraketQrackSimulator(ABC):
             if not is_measured:
                 circ.measure_all()
             _measurements = qsim.run_qiskit_circuit(circ, shots)
-            measurements = [list(bit_string) for bit_string in _measurements]
+            measurements = [list(int(bit) for bit in bit_string) for bit_string in _measurements]
 
         resultTypes = [] if len(pragma_lines) else None
         for l in pragma_lines:
