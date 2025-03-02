@@ -22,7 +22,7 @@ with open("src/braket/qrack_simulator/_version.py") as f:
 
 
 setup(
-    name="amazon-braket-qrack-cpu-simulator",
+    name="amazon-braket-qrack-simulator",
     version=version,
     license="Apache License 2.0",
     python_requires=">= 3.9",
@@ -31,7 +31,7 @@ setup(
     package_data={"": ["*.g4", "*.inc"]},
     include_package_data=True,
     install_requires=[
-        "pyqrack-cpu>=1.27.0",
+        "pyqrack>=1.27.0",
         "qiskit",
         "qiskit_qasm3_import",
         "amazon-braket-sdk",
