@@ -13,12 +13,9 @@
 
 import cmath
 import numpy as np
-import pytest
 
 from braket.circuits import Circuit
 from braket.devices import LocalSimulator
-
-from braket.default_simulator.result_types import StateVector
 
 
 def test_simulator_bell_state_m():

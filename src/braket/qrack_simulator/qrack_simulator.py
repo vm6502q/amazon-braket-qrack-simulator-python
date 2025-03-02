@@ -76,9 +76,8 @@ class BraketQrackSimulator(ABC):
         basis_gates = [
             'id', 'u', 'u1', 'u2', 'u3', 'r', 'rx', 'ry', 'rz',
             'h', 'x', 'y', 'z', 's', 'sdg', 'sx', 'sxdg', 'p', 't', 'tdg',
-            'cu', 'cu1', 'cu2', 'cu3', 'cx', 'cy', 'cz', 'ch', 'cp', 'csx', 'csxdg', 'dcx',
-            'ccx', 'ccy', 'ccz', 'mcx', 'mcy', 'mcz', 'mcu', 'mcu1', 'mcu2', 'mcu3',
-            'swap', 'iswap', 'cswap', 'mcswap', 'reset', 'measure', 'barrier'
+            'cu', 'cu1', 'cu3', 'cx', 'cz', 'ch', 'cp', 'csx', 'dcx',
+            'ccx', 'ccz', 'swap', 'iswap', 'cswap', 'reset', 'measure'
         ]
 
         src = ir.source.replace("cnot", "cx")
@@ -115,7 +114,7 @@ class BraketQrackSimulator(ABC):
         del line_num
 
         circ = transpile(loads("\n".join(src_lines)), basis_gates=basis_gates)
-        qsim = QrackSimulator(circ.width(), *args, **kwargs)
+        qsim = QrackSimulator(circ.num_qubits, *args, **kwargs)
         qsim.set_reactive_separate(is_reactively_separated)
         if sdrp >= 0:
             qsim.set_sdrp(sdrp)
@@ -129,14 +128,7 @@ class BraketQrackSimulator(ABC):
             if not is_measured:
                 circ.measure_all()
             _measurements = qsim.run_qiskit_circuit(circ, shots)
-            measurements = []
-            bit_len = len(qsim._sample_qubits)
-            for m in _measurements:
-                integer = int(m, 0)
-                bit_string = [int(digit) for digit in bin(integer)[2:]]
-                if len(bit_string) < bit_len:
-                    bit_string = bit_string + [0] * (bit_len - len(bit_string))
-                measurements.append(bit_string)
+            measurements = [list(int(bit) for bit in bit_string) for bit_string in _measurements]
 
         resultTypes = [] if len(pragma_lines) else None
         for l in pragma_lines:
