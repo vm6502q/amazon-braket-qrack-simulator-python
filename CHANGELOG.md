@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.3.1 (2024-02-25)
+## v0.4.0
+
+Update Qiskit API usage.
+
+## v0.3.1
 
 Bug fix / feature addition: "uncompute" after observable calculation (to allow different bases of observation for the same qubits).
 
